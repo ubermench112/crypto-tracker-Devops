@@ -7,14 +7,14 @@ phases:
     commands:
       - echo "Installing dependencies for API Lambda"
       - pip install --upgrade pip
-      - pip install -r lambda/api/requirements.txt -t lambda/api/
+      - pip install -r Lambda/API/requirements.txt -t Lambda/API/
       - echo "Installing dependencies for Collector Lambda"
-      - pip install -r lambda/collector/requirements.txt -t lambda/collector/
+      - pip install -r Lambda/Collector/requirements.txt -t Lambda/Collector/
   build:
     commands:
       - echo "Zipping Lambda functions"
-      - cd lambda/api && zip -r ../../api.zip * && cd ../../
-      - cd lambda/collector && zip -r ../../collector.zip * && cd ../../
+      - cd Lambda/API && zip -r ../../api.zip * && cd ../../
+      - cd Lambda/Collector && zip -r ../../collector.zip * && cd ../../
       - echo "Uploading zips to S3 bucket for Lambda deployment"
       - aws s3 cp api.zip s3://crypto-tracker-lambda-code/api.zip
       - aws s3 cp collector.zip s3://crypto-tracker-lambda-code/collector.zip
