@@ -1,9 +1,15 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Crypto Tracker Infrastructure
 
+#  NEW: Parameter to force updates (add this block)
+Parameters:
+  BuildId:
+    Type: String
+    Description: Unique identifier for this build – passed by CodePipeline
+
 Resources:
 
-  # DynamoDB Table
+  # DynamoDB Table (unchanged)
   CryptoTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -20,7 +26,7 @@ Resources:
         - AttributeName: timestamp
           KeyType: RANGE
 
-  # Lambda Execution Role
+  # Lambda Execution Role (unchanged)
   LambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -46,7 +52,7 @@ Resources:
                   - dynamodb:Scan
                 Resource: "*"
 
-  # Collector Lambda (S3 ZIP)
+  # Collector Lambda (only change: added environment variable)
   CollectorLambda:
     Type: AWS::Lambda::Function
     Properties:
@@ -56,10 +62,13 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Timeout: 10
       Code:
-        S3Bucket: crypto-tracker-lambda-code
-        S3Key: collector.zip
+        S3Bucket: crypto-tracker-lambda-code   # ← your bucket (unchanged)
+        S3Key: collector.zip                    # ← your key (unchanged)
+      Environment:                               #  NEW block
+        Variables:
+          BUILD_ID: !Ref BuildId
 
-  # API Lambda (S3 ZIP)
+  # API Lambda (only change: added environment variable)
   ApiLambda:
     Type: AWS::Lambda::Function
     Properties:
@@ -69,6 +78,9 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       Timeout: 10
       Code:
-        S3Bucket: crypto-tracker-lambda-code
-        S3Key: api.zip
+        S3Bucket: crypto-tracker-lambda-code   # ← your bucket (unchanged)
+        S3Key: api.zip                          # ← your key (unchanged)
+      Environment:                               #  NEW block
+        Variables:
+          BUILD_ID: !Ref BuildId
               
