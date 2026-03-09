@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Crypto Tracker Infrastructure
+
+Resources:
+
+  # DynamoDB Table
+  CryptoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: CryptoPriceTracker
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: crypto_name
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: crypto_name
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+
+  # Lambda Execution Role
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: crypto-tracker-lambda-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                Resource: "*"
+
+  # Collector Lambda (S3 ZIP)
+  CollectorLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: crypto-price-collector
+      Runtime: python3.12
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 10
+      Code:
+        S3Bucket: crypto-tracker-lambda-code
+        S3Key: collector.zip
+
+  # API Lambda (S3 ZIP)
+  ApiLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: crypto-price-api
+      Runtime: python3.12
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 10
+      Code:
+        S3Bucket: crypto-tracker-lambda-code
+        S3Key: api.zip
+              
