@@ -5,16 +5,20 @@ phases:
     runtime-versions:
       python: 3.12
     commands:
-      - echo Installing dependencies
+      - echo "Installing dependencies for API Lambda"
       - pip install --upgrade pip
       - pip install -r lambda/api/requirements.txt -t lambda/api/
+      - echo "Installing dependencies for Collector Lambda"
       - pip install -r lambda/collector/requirements.txt -t lambda/collector/
   build:
     commands:
-      - echo Zipping Lambda functions
+      - echo "Zipping Lambda functions"
       - cd lambda/api && zip -r ../../api.zip * && cd ../../
       - cd lambda/collector && zip -r ../../collector.zip * && cd ../../
-      - echo Build completed
+      - echo "Uploading zips to S3 bucket for Lambda deployment"
+      - aws s3 cp api.zip s3://crypto-tracker-lambda-code/api.zip
+      - aws s3 cp collector.zip s3://crypto-tracker-lambda-code/collector.zip
+      - echo "Build and upload completed"
 artifacts:
   files:
     - api.zip
